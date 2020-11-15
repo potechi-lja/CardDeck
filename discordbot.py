@@ -3,6 +3,7 @@ import os
 import traceback
 import random
 import math
+import typing
 
 bot = commands.Bot(command_prefix='/')
 TOKEN = os.environ['DISCORD_BOT_TOKEN']
