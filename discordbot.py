@@ -5,8 +5,12 @@ import random
 import math
 
 bot = commands.Bot(command_prefix='/')
-token = os.environ['DISCORD_BOT_TOKEN']
+TOKEN = os.environ['DISCORD_BOT_TOKEN']
 
+# コマンド設定
+description = '''できること一覧。
+コマンドは先頭に"/"をつけてください。'''
+bot = commands.Bot(command_prefix='/', description=description)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -17,99 +21,90 @@ async def on_command_error(ctx, error):
 # 起動時に動作する処理
 @bot.event
 async def on_ready():
-    # デッキ数・ジョーカー枚数の初期設定
-    deck = 1 #デッキ数
-    joker = 2 #ジョーカー枚数
-    status = 'Deck' + str(deck) + ", Joker" + str(joker)
-    # botのステータスを設定
-    await client.change_presence(activity=discord.Game(name=status, type=1))
-    print('正常に起動しました。')
+    print('Logged in as')
+    print(bot.user.name)
+    print(bot.user.id)
+    print('------')
+    
+# ねこちゃんが返事をする
+@bot.command()
+async def neko(ctx):
+    """ねこちゃんがランダムで返事をします。"""
+    nekochan = ['にゃーん', '……んなぁご', 'ゴロゴロ', 'ふにゃあ', 'みゃみゃみゃ……', 'フシャーッ！', 'にゃにゃっ', 'GMから逃げるな']
+    await ctx.send(random.choice(nekochan))
+    print('command neko is send successfully.')
+    print('------')
 
-# メッセージ受信時に動作する処理
-@bot.event
-async def on_message(message):
-    # メッセージ送信者がBotだった場合は無視する
-    if message.author.bot:
+# ダイスを振る
+@bot.command()
+async def roll(ctx, dice : str):
+    """NdN形式でダイスを振ります。"""
+    try:
+        rolls, limit = map(int, dice.split('d'))
+    except Exception:
+        await ctx.send('Format has to be in NdN!')
         return
 
-    # 「/neko」と発言したら「にゃーん」が返る処理
-    if message.content == '/neko':
-        await message.channel.send('にゃーん')
+    li = []
+    for r in range(rolls):
+        li.append(random.randint(1, limit))
+    result = ','.join(map(str, li))
+    await ctx.send(dice + ' -> [' + result + '] -> ' + str(sum(li)))
+    print('command roll is send successfully.')
+    print('------')
 
-    # ランダムカード関数を実行
-    if message.content == '/random':
-        deck = 1 #デッキ数
-        joker = 2 #ジョーカー枚数
-        print('ランダムカード関数を実行します。デッキ数=', deck ,' Joker枚数=', joker)
-        
-        def RandomCard(deck, joker):
-            randomCard = random.randrange(52 * deck + joker) + 1
-            print('Original Card No.', randomCard)
-            #Jokerの処理
-            if 52 * deck < randomCard <= 52 * deck + joker:
-                return "Joker"
-            #スートの決定
-            if randomCard % 4 == 0:
-                cardSuite = "スペード"
-                emojiSuite = ":spades:"
-            elif randomCard % 4 == 1:
-                cardSuite = "ハート"
-                emojiSuite = ":hearts:"
-            elif randomCard % 4 == 2:
-                cardSuite = "ダイヤ"
-                emojiSuite = ":diamonds:"
-            elif randomCard % 4 == 3:
-                cardSuite = "クラブ"
-                emojiSuite = ":clubs:"
-            #数字の決定
-            if math.ceil(randomCard % 52 / 4) == 1:
-                cardNumber = "A"
-                emojiNumber = ":a:"
-            elif math.ceil(randomCard % 52 / 4) == 2:
-                cardNumber = "2"
-                emojiNumber = ":two:"
-            elif math.ceil(randomCard % 52 / 4) == 3:
-                cardNumber = "3"
-                emojiNumber = ":three:"
-            elif math.ceil(randomCard % 52 / 4) == 4:
-                cardNumber = "4"
-                emojiNumber = ":four:"
-            elif math.ceil(randomCard % 52 / 4) == 5:
-                cardNumber = "5"
-                emojiNumber = ":five:"
-            elif math.ceil(randomCard % 52 / 4) == 6:
-                cardNumber = "6"
-                emojiNumber = ":six:"
-            elif math.ceil(randomCard % 52 / 4) == 7:
-                cardNumber = "7"
-                emojiNumber = ":seven:"
-            elif math.ceil(randomCard % 52 / 4) == 8:
-                cardNumber = "8"
-                emojiNumber = ":eight:"
-            elif math.ceil(randomCard % 52 / 4) == 9:
-                cardNumber = "9"
-                emojiNumber = ":nine:"
-            elif math.ceil(randomCard % 52 / 4) == 10:
-                cardNumber = "10"
-                emojiNumber = ":ten:"
-            elif math.ceil(randomCard % 52 / 4) == 11:
-                cardNumber = "J"
-                emojiNumber = ":regional_indicator_j:"
-            elif math.ceil(randomCard % 52 / 4) == 12:
-                cardNumber ="Q"
-                emojiNumber = ":regional_indicator_q:"
-            elif math.ceil(randomCard % 52 / 4) == 13:
-                cardNumber = "K"
-                emojiNumber = ":regional_indicator_k:"
-            return cardSuite + "の" + cardNumber + emojiSuite + emojiNumber
-
-        result = RandomCard(deck, joker)
-        await message.channel.send(result)
-        print('実行結果: ', result)
-    
+# choiceする
 @bot.command()
-async def ping(ctx):
-    await ctx.send('pong')
+async def choice(ctx, *choices : str):
+    """スペース区切りの候補から1つをチョイスします。"""
+    await ctx.send("choice[" + ', '.join(choices) + "] -> " + random.choice(choices))
+    print('command choice is send successfully.')
+    print('------')
+
+# トランプを引く
+@bot.command()
+async def draw(ctx, card: typing.Optional[int] = 1, joker: typing.Optional[int] = 2, deck: typing.Optional[int] = 1):
+    """トランプを引きます。スペース区切りで[ドロー枚数][JOKER枚数][山数]の指定が可能です。"""
+
+    # 山札を超える場合の処理
+    if card > (52 + joker) * deck:
+        await ctx.send('ドロー枚数が多すぎます。山札の枚数以下で指定してください。')
+        return
+    # 負数とか指定された場合の処理
+    if card <= 0 or joker < 0 or deck <= 0:
+        await ctx.send('間違った値が入力されています。/n[ドロー枚数][山数]は1以上、[JOKER枚数]は0以上で入力してください。')
+        return
+
+    # シャッフルした山から指定枚数を抽出する
+    wholeDeck = list(range((52 + joker) * deck))
+    randomDeck = random.sample(wholeDeck, len(wholeDeck))
+
+    for keyNo in randomDeck[0:card]:
+        cardNo = keyNo % 13 + 1
+        if keyNo % 13 + 1 == 1:
+            cardNo = 'A'
+        elif keyNo % 13 + 1 == 11:
+            cardNo = 'J'
+        elif keyNo % 13 + 1 == 12:
+            cardNo = 'Q'
+        elif keyNo % 13 + 1 == 13:
+            cardNo = 'K'
+        else:
+            cardNo = str(keyNo % 13 + 1)
+        if 52 * deck < keyNo <= (52 + joker) * deck:
+            suite = "JOKER"
+            cardNo = ""
+        elif math.ceil(keyNo % 4) == 0:
+            suite = "スペードの"
+        elif math.ceil(keyNo % 4) == 1:
+            suite = "ハートの"
+        elif math.ceil(keyNo % 4) == 2:
+            suite = "ダイヤの"
+        else: # math.ceil(keyNo % 4) == 3:
+            suite = "クラブの"
+        await ctx.send(suite + cardNo)
+    print('command draw is send successfully.')
+    print('------')
 
 # Botの起動とDiscordサーバーへの接続
-bot.run(token)
+bot.run(TOKEN)
