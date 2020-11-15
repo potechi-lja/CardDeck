@@ -66,14 +66,13 @@ async def choice(ctx, *choices : str):
 @bot.command()
 async def draw(ctx, card: typing.Optional[int] = 1, joker: typing.Optional[int] = 2, deck: typing.Optional[int] = 1):
     """トランプを引きます。スペース区切りで[ドロー枚数][JOKER枚数][山数]の指定が可能です。"""
-
+    # 負数とか指定された場合の処理
+    if card <= 0 or joker < 0 or deck <= 0:
+        await ctx.send('間違った値が入力されています。\n[ドロー枚数][山数]は1以上、[JOKER枚数]は0以上で入力してください。')
+        return
     # 山札を超える場合の処理
     if card > (52 + joker) * deck:
         await ctx.send('ドロー枚数が多すぎます。山札の枚数以下で指定してください。')
-        return
-    # 負数とか指定された場合の処理
-    if card <= 0 or joker < 0 or deck <= 0:
-        await ctx.send('間違った値が入力されています。/n[ドロー枚数][山数]は1以上、[JOKER枚数]は0以上で入力してください。')
         return
 
     # シャッフルした山から指定枚数を抽出する
