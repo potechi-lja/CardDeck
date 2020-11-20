@@ -65,6 +65,7 @@ async def neko(ctx):
     print('------')
 
 # ダイスを振る
+@bot.command()
 async def roll(ctx, dice : str):
     """入力されたダイスを振ります。`CoC`または`CoC6`と入力するとクトゥルフ6版、`CoC7`と入力するとクトゥルフ7版の探索者を自動生成します。"""
     PATTERN_rollset = '\[.+?\]'
