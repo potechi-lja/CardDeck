@@ -66,9 +66,12 @@ async def neko(ctx):
 
 # ダイスを振る
 @bot.command()
-async def roll(ctx, dice : str):
+async def roll(ctx, dice: typing.Optional[str] = ""):
     """入力されたダイスを振ります。`CoC`または`CoC6`と入力するとクトゥルフ6版、`CoC7`と入力するとクトゥルフ7版の探索者を自動生成します。"""
     PATTERN_rollset = '\[.+?\]'
+    if dice == "":
+        await ctx.send('`/roll`の後にダイスコマンドを入力してください（間にスペースが必要です）。')
+        return
     if dice == "CoC" or dice == "CoC6":
         throw = '3d+3d+3d+3d+3d+2d+2d+3d'
         try:
@@ -101,7 +104,7 @@ async def roll(ctx, dice : str):
         output_CoC = ''
         for x in range(len(status)):
             if status[x] in ['SIZ', 'INT', 'EDU']:
-                output_CoC += status[x] + ' -> ' + rollset[x] + '   +6 ×5 -> ' + str(int(dice_sum[x])*5) + '\n'
+                output_CoC += status[x] + ' -> ' + rollset[x] + '   +6 ×5 -> ' + str((int(dice_sum[x])+6)*5) + '\n'
             else:
                 output_CoC += status[x] + ' -> ' + rollset[x] + '    ×5 -> ' + str(int(dice_sum[x])*5) + '\n'
         output = 'クトゥルフ神話TRPG[7版]\n' + output_CoC + 'ダイス合計：' + str(dice_return[3])
