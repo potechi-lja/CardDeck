@@ -72,8 +72,7 @@ async def roll(ctx, dice: typing.Optional[str] = "", comment: typing.Optional[st
         await ctx.send('`/roll`の後にダイスコマンドを入力してください（間にスペースが必要です）。')
         return
     if dice == "COC" or dice == "COC6":
-        throw = '3d+3d+3d+3d+3d+2d+2d+3d'
-        dice_return = diceroll(throw)
+        dice_return = Diceroll('3D+3D+3D+3D+3D+2D+2D+3D')
         rollset = re.findall(PATTERN_rollset, dice_return[1])
         status = ['STR', 'CON', 'POW', 'DEX', 'APP', 'SIZ', 'INT', 'EDU']
         dice_sum = dice_return[2].split('+')
@@ -87,8 +86,7 @@ async def roll(ctx, dice: typing.Optional[str] = "", comment: typing.Optional[st
                 output_CoC += status[x] + ' -> ' + rollset[x] + '    -> ' + str(int(dice_sum[x])) + '\n'
         output = 'クトゥルフ神話TRPG[6版]\n' + output_CoC + 'ダイス合計：' + str(dice_return[3])
     elif dice == 'COC7':
-        throw = '3d+3d+3d+3d+3d+2d+2d+2d+3d'
-        dice_return = diceroll(throw)
+        dice_return = Diceroll('3D+3D+3D+3D+3D+2D+2D+2D+3D')
         rollset = re.findall(PATTERN_rollset, dice_return[1])
         status = ['STR', 'CON', 'POW', 'DEX', 'APP', 'SIZ', 'INT', 'EDU', 'LUK']
         dice_sum = dice_return[2].split('+')
