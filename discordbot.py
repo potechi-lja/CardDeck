@@ -33,7 +33,7 @@ async def on_ready():
     print('------')
 
 # ダイス処理関数
-def diceroll(dice):
+def Diceroll(dice):
     # フォーマット整理：面数指定なしはD6とする
     pattern_NDblank = "D(?![1-9])"
     pattern_NDN = "[1-9][0-9]*D[1-9][0-9]*"
