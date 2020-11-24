@@ -37,8 +37,6 @@ def diceroll(dice):
     # フォーマット整理：面数指定なしはD6とする
     pattern_NDblank = "D(?![1-9])"
     pattern_NDN = "[1-9][0-9]*D[1-9][0-9]*"
-    dice = dice.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)}))
-    dice = dice.strip().replace('　', ' ').replace(' ', '').upper()
     dice = re.sub(pattern_NDblank, 'D6', dice)
     diceset = re.findall(pattern_NDN, dice)
     dsumlist, dielist, result1, result2 = [], [], dice, dice
@@ -66,19 +64,16 @@ async def neko(ctx):
 
 # ダイスを振る
 @bot.command()
-async def roll(ctx, dice: typing.Optional[str] = ""):
+async def roll(ctx, dice: typing.Optional[str] = "", comment: typing.Optional[str] = ""):
     """入力されたダイスを振ります。`CoC`または`CoC6`と入力するとクトゥルフ6版、`CoC7`と入力するとクトゥルフ7版の探索者を自動生成します。"""
+    dice = dice.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)})).upper()
     PATTERN_rollset = '\[.+?\]'
     if dice == "":
         await ctx.send('`/roll`の後にダイスコマンドを入力してください（間にスペースが必要です）。')
         return
     if dice == "CoC" or dice == "CoC6":
         throw = '3d+3d+3d+3d+3d+2d+2d+3d'
-        try:
-            dice_return = diceroll(throw)
-        except Exception:
-            await ctx.send('入力が間違っているかもしれません……')
-            return
+        dice_return = diceroll(throw)
         rollset = re.findall(PATTERN_rollset, dice_return[1])
         status = ['STR', 'CON', 'POW', 'DEX', 'APP', 'SIZ', 'INT', 'EDU']
         dice_sum = dice_return[2].split('+')
@@ -93,11 +88,7 @@ async def roll(ctx, dice: typing.Optional[str] = ""):
         output = 'クトゥルフ神話TRPG[6版]\n' + output_CoC + 'ダイス合計：' + str(dice_return[3])
     elif dice == 'CoC7':
         throw = '3d+3d+3d+3d+3d+2d+2d+2d+3d'
-        try:
-            dice_return = diceroll(throw)
-        except Exception:
-            await ctx.send('入力が間違っているかもしれません……')
-            return
+        dice_return = diceroll(throw)
         rollset = re.findall(PATTERN_rollset, dice_return[1])
         status = ['STR', 'CON', 'POW', 'DEX', 'APP', 'SIZ', 'INT', 'EDU', 'LUK']
         dice_sum = dice_return[2].split('+')
@@ -112,11 +103,10 @@ async def roll(ctx, dice: typing.Optional[str] = ""):
         try:
             dice_return = diceroll(dice)
         except Exception:
-            await ctx.send('入力が間違っているかもしれません……')
+            await ctx.send('＞' + ctx.author.name + '\n' + '入力が間違っているかもしれません……')
             return
         output = dice_return[0] + '\n -> ' + dice_return[1] + '\n -> ' + dice_return[2] + '\n -> ' + dice_return[3]
-        print(output)
-    await ctx.send('```\n' + output + '```')
+    await ctx.send('＞' + ctx.author.name + ' ' + comment + '\n```\n' + output + '```')
     print('command roll is send successfully.')
     print('------')
 
@@ -124,7 +114,7 @@ async def roll(ctx, dice: typing.Optional[str] = ""):
 @bot.command()
 async def choice(ctx, *choices : str):
     """スペース区切りの候補から1つをチョイスします。"""
-    await ctx.send("choice[" + ', '.join(choices) + "] -> " + random.choice(choices))
+    await ctx.send('＞' + ctx.author.name + '\n' + 'choice[' + ', '.join(choices) + '] -> ' + random.choice(choices))
     print('command choice is send successfully.')
     print('------')
 
@@ -132,19 +122,22 @@ async def choice(ctx, *choices : str):
 @bot.command()
 async def draw(ctx, card: typing.Optional[int] = 1, joker: typing.Optional[int] = 2, deck: typing.Optional[int] = 1):
     """トランプを引きます。スペース区切りで[ドロー枚数][JOKER枚数][山数]の指定が可能です。"""
-    # 負数とか指定された場合の処理
-    if card <= 0 or joker < 0 or deck <= 0:
-        await ctx.send('間違った値が入力されています。\n[ドロー枚数][山数]は1以上、[JOKER枚数]は0以上で入力してください。')
-        return
     # 山札を超える場合の処理
     if card > (52 + joker) * deck:
-        await ctx.send('ドロー枚数が多すぎます。山札の枚数以下で指定してください。')
+        await ctx.send('＞' + ctx.author.name + '\nドロー枚数が多すぎます。山札の枚数以下で指定してください。')
         return
-
+    # 負数とか指定された場合の処理
+    if card <= 0 or joker < 0 or deck <= 0:
+        await ctx.send('＞' + ctx.author.name + '\n間違った値が入力されています。/n[ドロー枚数][山数]は1以上、[JOKER枚数]は0以上で入力してください。')
+        return
     # シャッフルした山から指定枚数を抽出する
     wholeDeck = list(range((52 + joker) * deck))
     randomDeck = random.sample(wholeDeck, len(wholeDeck))
-
+    # シャッフルした山から指定枚数を抽出する
+    wholeDeck = list(range((52 + joker) * deck))
+    randomDeck = random.sample(wholeDeck, len(wholeDeck))
+    result = []
+    result_str = ''
     for keyNo in randomDeck[0:card]:
         cardNo = keyNo % 13 + 1
         if keyNo % 13 + 1 == 1:
@@ -168,7 +161,10 @@ async def draw(ctx, card: typing.Optional[int] = 1, joker: typing.Optional[int] 
             suite = "ダイヤの"
         else: # math.ceil(keyNo % 4) == 3:
             suite = "クラブの"
-        await ctx.send(suite + cardNo)
+        result.append(suite + cardNo)
+    for content in result:
+        result_str = result_str + '\n' + content
+    await ctx.send('＞' + ctx.author.name + result_str)
     print('command draw is send successfully.')
     print('------')
 
