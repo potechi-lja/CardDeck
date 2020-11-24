@@ -99,7 +99,7 @@ async def roll(ctx, dice: typing.Optional[str] = "", comment: typing.Optional[st
         output = 'クトゥルフ神話TRPG[7版]\n' + output_CoC + 'ダイス合計：' + str(dice_return[3])
     else:
         try:
-            dice_return = diceroll(dice)
+            dice_return = Diceroll(dice)
         except Exception:
             await ctx.send('＞' + ctx.author.name + '\n' + '入力が間違っているかもしれません……')
             return
